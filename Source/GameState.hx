@@ -1,30 +1,32 @@
 package ;
 
-import flixel.FlxG;
-import flixel.FlxState;
-import mintDungeon.MintDungeon;
+import mintDungeon.Generator;
 import openfl.display.Bitmap;
+import openfl.display.Sprite;
+import openfl.events.Event;
 
-class GameState extends FlxState
+class GameState extends Sprite
 {
 	private var _generator:Generator;
 
 	public function new()
 	{
 		super();
+
+		addEventListener(Event.ADDED_TO_STAGE, init);
 	}
 
-	override public function create():Void
+	private function init(e:Event):Void
 	{
-		FlxG.cameras.bgColor = 0xFFFFFF;
-
-		_generator = new Generator();
+		_generator = new Generator(10);
 		_generator.mapSizeInTiles.setTo(50, 50);
+		_generator.roomSize.setTo(2, 6);
 		_generator.generate();
 
 		var b:Bitmap = _generator.getMapAsBitmap();
-		FlxG.stage.addChild(b);
-
-		super.create();
+		b.scaleX = b.scaleY = 10;
+		b.x = stage.stageWidth / 2 - b.width / 2;
+		b.y = stage.stageHeight / 2 - b.height / 2;
+		addChild(b);
 	}
 }
