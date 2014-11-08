@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project>
+	
+	<window width="1280" height="720" />
+	<set name="SWF_VERSION" value="11.8" />
+	
+	<meta title="DocumentsGitMintDungeon" package="com.sample.project" version="1.0.0" company="Company Name" />
+	<app main="Main" path="Export" file="DocumentsGitMintDungeon" />
+	
+	<source path="Source" />
+	
+	<haxelib name="openfl" />
+	<haxelib name="flixel" />
+	
+	<assets path="Assets" rename="assets" exclude="openfl.svg" />
+	<icon path="Assets/openfl.svg" />
+	
+</project>
