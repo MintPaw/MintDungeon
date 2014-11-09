@@ -7,6 +7,7 @@ class Hallway extends DrawableObject
 {
 	public var startPoint:Point = new Point();
 	public var endPoint:Point = new Point();
+	public var direction:Int;
 
 	public function new()
 	{

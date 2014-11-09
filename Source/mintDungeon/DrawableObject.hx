@@ -30,7 +30,7 @@ class DrawableObject
 			tempOutline.push(new Point(i.x + 1, i.y - 1));
 			tempOutline.push(new Point(i.x - 1, i.y + 1));
 		}
-
+		
 		for (i in tempOutline)
 		{
 			var add:Bool = true;

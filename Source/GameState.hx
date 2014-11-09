@@ -28,7 +28,7 @@ class GameState extends Sprite
 	{
 		_generator = new Generator(10);
 		_generator.mapSizeInTiles.setTo(50, 50);
-		_generator.roomSize.setTo(2, 6);
+		_generator.roomSize.setTo(3, 6);
 		_generator.roomAmount.setTo(5, 10);
 		_generator.hallLength.setTo(3, 5);
 		_generator.generate();
