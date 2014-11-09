@@ -3,9 +3,10 @@ package mintDungeon;
 import openfl.geom.Point;
 import openfl.geom.Rectangle;
 
-class Room extends DrawableObject
+class Hallway extends DrawableObject
 {
-	public var location:Rectangle = new Rectangle();
+	public var startPoint:Point = new Point();
+	public var endPoint:Point = new Point();
 
 	public function new()
 	{
