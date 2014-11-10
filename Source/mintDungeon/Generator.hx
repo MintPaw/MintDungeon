@@ -25,9 +25,10 @@ class Generator
 	public var roomAmount:Point = new Point();
 	public var hallLength:Point = new Point();
 
-	public var rooms:Array<Room> = [];
+	public var rooms:Array<Room>;
 
-	private var _mapArray:Array<Array<Int>> = [];
+	private var _mapArray:Array<Array<Int>>;
+	private var _groundArray:Array<Point>;
 
 	private var _tryAgain:Bool;
 	private var _tries:Int;
@@ -39,11 +40,22 @@ class Generator
 
 	public function generate():Void
 	{
-		_tryAgain = false;
-		_tries = 0;
+		_tryAgain = true;
 
-		generateEmptyMap();
-		generateRooms();
+		while (_tryAgain)
+		{
+			_tryAgain = false;
+			_tries = 0;
+
+			_mapArray = [];
+			_groundArray = [];
+			rooms = [];
+
+			generateEmptyMap();
+			generateRooms();
+		}
+
+		trace(_tries);
 	}
 
 	private function generateEmptyMap():Void
@@ -66,19 +78,30 @@ class Generator
 		//var roomsToGenerate:Int = Random.minMaxInt(roomAmount.x, roomAmount.x) - 1;
 		var roomsToGenerate:Int = 20;
 
+		var room:Room;
+		var hall:Hallway;
+
 		for (i in 0...roomsToGenerate)
 		{
-			var hall:Hallway = generateHallway();
+			while (true)
+			{
+				tried();
 
-			var size:Point = new Point(Random.minMaxInt(roomSize.x, roomSize.y), Random.minMaxInt(roomSize.x, roomSize.y));
-			var location:Point = new Point();
+				hall = generateHallway();
 
-			if (hall.direction == LEFT) location = new Point(hall.endPoint.x - size.x, hall.endPoint.y);
-			if (hall.direction == RIGHT) location = new Point(hall.endPoint.x + 1, hall.endPoint.y);
-			if (hall.direction == UP) location = new Point(hall.endPoint.x, hall.endPoint.y - size.y);
-			if (hall.direction == DOWN) location = new Point(hall.endPoint.x, hall.endPoint.y + 1);
+				var size:Point = new Point(Random.minMaxInt(roomSize.x, roomSize.y), Random.minMaxInt(roomSize.x, roomSize.y));
+				var location:Point = new Point();
 
-			var room:Room = generateRoom(Math.round(location.x), Math.round(location.y), Math.round(size.x), Math.round(size.y));
+				if (hall.direction == LEFT) location = new Point(hall.endPoint.x - size.x, hall.endPoint.y - Random.minMaxInt(0, size.y - 1));
+				if (hall.direction == RIGHT) location = new Point(hall.endPoint.x + 1, hall.endPoint.y - Random.minMaxInt(0, size.y - 1));
+				if (hall.direction == UP) location = new Point(hall.endPoint.x - Random.minMaxInt(0, size.x - 1), hall.endPoint.y - size.y);
+				if (hall.direction == DOWN) location = new Point(hall.endPoint.x - Random.minMaxInt(0, size.x - 1), hall.endPoint.y + 1);
+
+				room = generateRoom(Math.round(location.x), Math.round(location.y), Math.round(size.x), Math.round(size.y));
+
+				if (_tryAgain) return;
+				if (canBuild(hall) && canBuild(room)) break;
+			}
 
 			drawObject(room);
 			drawObject(hall);
@@ -91,13 +114,22 @@ class Generator
 
 		while (true)
 		{
+			tried();
+
 			hall = new Hallway();
 			var startingWall:Point = new Point();
 
 			while (true)
 			{
-				startingWall.setTo(Random.minMaxInt(0, mapSizeInTiles.x - 1), Random.minMaxInt(0, mapSizeInTiles.y - 1));
-				if (getTile(startingWall.x, startingWall.y) == GROUND) break;
+				startingWall.setTo(Random.minMaxInt(1, mapSizeInTiles.x - 1), Random.minMaxInt(0, mapSizeInTiles.y - 1));
+				if (getTile(startingWall.x, startingWall.y) == GROUND)
+				{
+					if (
+						getTile(startingWall.x + 1, startingWall.y) == WALL ||
+						getTile(startingWall.x - 1, startingWall.y) == WALL ||
+						getTile(startingWall.x, startingWall.y + 1) == WALL ||
+						getTile(startingWall.x, startingWall.y - 1) == WALL || _tryAgain) break;
+				}
 			}
 
 			var direction:Int = Random.minMaxInt(0, 3);
@@ -115,7 +147,8 @@ class Generator
 			hall.startPoint = hall.tiles.shift();
 			hall.endPoint = hall.tiles[hall.tiles.length - 1];
 
-			if (canBuild(hall)) return hall;
+			//if (canBuild(hall) || _tryAgain) return hall;
+			return hall;
 		}
 	}
 
@@ -131,6 +164,8 @@ class Generator
 	{
 		while(true)
 		{
+			tried();
+
 			var room:Room = new Room();
 
 			room.location.setTo(x, y, width, height);
@@ -143,7 +178,7 @@ class Generator
 				}
 			}
 
-			//if (canBuild(room)) return room;
+			//if (canBuild(room) || _tryAgain)
 			return room;
 		}
 	}
@@ -180,6 +215,7 @@ class Generator
 
 	private function setTile(xpos:Float, ypos:Float, type:Int):Void
 	{
+		if (_tryAgain) return;
 		_mapArray[Std.int(ypos)][Std.int(xpos)] = type;
 	}
 
@@ -195,9 +231,18 @@ class Generator
 		if (Std.is(o, Hallway))
 		{
 			setTile(cast(o, Hallway).startPoint.x, cast(o, Hallway).startPoint.y, GROUND);
-			setTile(cast(o, Hallway).endPoint.x, cast(o, Hallway).endPoint.y, DEBUG);
+			setTile(cast(o, Hallway).startPoint.x, cast(o, Hallway).startPoint.y, GROUND);
 		}
 		//for (i in o.outline) setTile(i.x, i.y, DEBUG);
+
+		_groundArray = [];
+		for (i in 0..._mapArray.length)
+		{
+			for (j in 0..._mapArray[i].length)
+			{
+				if (getTile(j, i) == GROUND) _groundArray.push(new Point(j, i));
+			}
+		}
 	}
 
 	private function canBuild(o:DrawableObject):Bool
@@ -213,5 +258,10 @@ class Generator
 		}
 
 		return true;
+	}
+
+	private function tried():Void
+	{
+		if (_tries++ > 1000) _tryAgain = true;
 	}
 }

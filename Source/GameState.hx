@@ -33,6 +33,11 @@ class GameState extends Sprite
 		_generator.hallLength.setTo(3, 5);
 		_generator.generate();
 
+		showMap();
+	}
+
+	private function showMap():Void
+	{
 		var b:Bitmap = _generator.getMapAsBitmap();
 		b.scaleX = b.scaleY = 14;
 		b.x = stage.stageWidth / 2 - b.width / 2;
