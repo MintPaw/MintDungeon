@@ -1,14 +1,18 @@
-package ;
+package;
 
 import mintDungeon.Generator;
 import openfl.display.Bitmap;
 import openfl.display.Sprite;
 import openfl.events.Event;
 import openfl.events.KeyboardEvent;
+import openfl.text.TextField;
+import openfl.text.TextFieldType;
+import openfl.text.TextFormat;
 
 class GameState extends Sprite
 {
 	private var _generator:Generator;
+	private var _params:TextField;
 
 	public function new()
 	{
@@ -19,18 +23,28 @@ class GameState extends Sprite
 
 	private function init(e:Event):Void
 	{
-		makeMap();
+		_params = new TextField();
+		_params.type = TextFieldType.INPUT;
+		_params.width = stage.stageWidth;
+		_params.height = 20;
+		_params.y = stage.stageHeight - _params.height;
+		_params.text = "mapSize|50|50|roomSize|3|6|roomAmount|5|10|hallLength|5|10";
+		addChild(_params);
 
-		stage.addEventListener(KeyboardEvent.KEY_UP, kUp);
+		_params.addEventListener(KeyboardEvent.KEY_UP, kUp);
 	}
 
 	private function makeMap():Void
 	{
+		var paramStrings:Array<String> = _params.text.split("|");
+		var params:Array<Float> = [];
+		for (i in 0...paramStrings.length) if (i % 3 != 0) params.push(Std.parseFloat(paramStrings[i]));
+
 		_generator = new Generator(10);
-		_generator.mapSizeInTiles.setTo(50, 50);
-		_generator.roomSize.setTo(3, 6);
-		_generator.roomAmount.setTo(5, 10);
-		_generator.hallLength.setTo(3, 5);
+		_generator.mapSizeInTiles.setTo(params[0], params[1]);
+		_generator.roomSize.setTo(params[2], params[3]);
+		_generator.roomAmount.setTo(params[4], params[5]);
+		_generator.hallLength.setTo(params[6], params[7]);
 		_generator.generate();
 
 		showMap();
@@ -47,6 +61,6 @@ class GameState extends Sprite
 
 	private function kUp(e:KeyboardEvent):Void
 	{
-		if (e.keyCode == 32) makeMap();
+		if (e.keyCode == 13) makeMap();
 	}
 }

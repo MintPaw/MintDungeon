@@ -54,8 +54,6 @@ class Generator
 			generateEmptyMap();
 			generateRooms();
 		}
-
-		trace(_tries);
 	}
 
 	private function generateEmptyMap():Void
@@ -75,8 +73,7 @@ class Generator
 		var startRoom:Room = generateStartingRoom();
 		drawObject(startRoom);
 
-		//var roomsToGenerate:Int = Random.minMaxInt(roomAmount.x, roomAmount.x) - 1;
-		var roomsToGenerate:Int = 20;
+		var roomsToGenerate:Int = Random.minMaxInt(roomAmount.x, roomAmount.x) - 1;
 
 		var room:Room;
 		var hall:Hallway;
