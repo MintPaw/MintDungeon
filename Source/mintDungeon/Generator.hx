@@ -14,8 +14,8 @@ class Generator
 	public static var UP:Int = 2;
 	public static var DOWN:Int = 3;
 
-	public static var WALL:Int = 1;
-	public static var GROUND:Int = 0;
+	public static var WALL:Int = 2;
+	public static var GROUND:Int = 1;
 	public static var OFF_MAP:Int = 98;
 	public static var DEBUG:Int = 99;
 
@@ -183,6 +183,20 @@ class Generator
 		for (i in _mapArray)
 		{
 			for (j in i) s += j + " ";
+			s += "\n";
+		}
+
+		return s;
+	}
+
+	public function getMapAsCSV():String
+	{
+		var s:String = "";
+
+		for (i in _mapArray)
+		{
+			for (j in i) s += j + ",";
+			s = s.substr(0, s.length - 1);
 			s += "\n";
 		}
 
