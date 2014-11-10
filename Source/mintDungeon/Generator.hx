@@ -3,7 +3,6 @@ package mintDungeon;
 import mintDungeon.DrawableObject;
 import mintDungeon.Hallway;
 import mintDungeon.Random;
-import motion.Actuate;
 import openfl.display.Bitmap;
 import openfl.display.BitmapData;
 import openfl.geom.Point;
