@@ -53,10 +53,17 @@ class GameState extends Sprite
 	private function showMap():Void
 	{
 		var b:Bitmap = _generator.getMapAsBitmap();
-		b.scaleX = b.scaleY = 14;
+		addChild(b);
+
+		b.scaleX = b.scaleY = 100;
+		while(b.width > stage.stageWidth - 100 || b.height > stage.stageHeight - 100)
+		{
+			b.scaleX -= 1;
+			b.scaleY -= 1;
+		}
+
 		b.x = stage.stageWidth / 2 - b.width / 2;
 		b.y = stage.stageHeight / 2 - b.height / 2;
-		addChild(b);
 	}
 
 	private function kUp(e:KeyboardEvent):Void

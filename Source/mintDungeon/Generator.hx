@@ -25,10 +25,9 @@ class Generator
 	public var roomAmount:Point = new Point();
 	public var hallLength:Point = new Point();
 
-	public var rooms:Array<Room>;
+	public var spawnPoint:Point = new Point();
 
 	private var _mapArray:Array<Array<Int>>;
-	private var _groundArray:Array<Point>;
 
 	private var _tryAgain:Bool;
 	private var _tries:Int;
@@ -46,10 +45,7 @@ class Generator
 		{
 			_tryAgain = false;
 			_tries = 0;
-
 			_mapArray = [];
-			_groundArray = [];
-			rooms = [];
 
 			generateEmptyMap();
 			generateRooms();
@@ -144,7 +140,6 @@ class Generator
 			hall.startPoint = hall.tiles.shift();
 			hall.endPoint = hall.tiles[hall.tiles.length - 1];
 
-			//if (canBuild(hall) || _tryAgain) return hall;
 			return hall;
 		}
 	}
@@ -153,6 +148,9 @@ class Generator
 	{
 		var size:Point = new Point(Random.minMaxInt(roomSize.x, roomSize.y), Random.minMaxInt(roomSize.x, roomSize.y));
 		var location:Point = new Point(mapSizeInTiles.x / 2 - size.x / 2, mapSizeInTiles.y / 2 - size.y / 2);
+
+		spawnPoint.x = Math.round(location.x + size.x / 2);
+		spawnPoint.y = Math.round(location.y + size.y / 2);
 
 		return generateRoom(Math.round(location.x), Math.round(location.y), Math.round(size.x), Math.round(size.y));
 	}
@@ -175,7 +173,6 @@ class Generator
 				}
 			}
 
-			//if (canBuild(room) || _tryAgain)
 			return room;
 		}
 	}
@@ -225,21 +222,7 @@ class Generator
 	private function drawObject(o:DrawableObject):Void
 	{
 		for (i in o.tiles) setTile(i.x, i.y, GROUND);
-		if (Std.is(o, Hallway))
-		{
-			setTile(cast(o, Hallway).startPoint.x, cast(o, Hallway).startPoint.y, GROUND);
-			setTile(cast(o, Hallway).startPoint.x, cast(o, Hallway).startPoint.y, GROUND);
-		}
-		//for (i in o.outline) setTile(i.x, i.y, DEBUG);
-
-		_groundArray = [];
-		for (i in 0..._mapArray.length)
-		{
-			for (j in 0..._mapArray[i].length)
-			{
-				if (getTile(j, i) == GROUND) _groundArray.push(new Point(j, i));
-			}
-		}
+		if (Std.is(o, Hallway)) setTile(cast(o, Hallway).startPoint.x, cast(o, Hallway).startPoint.y, GROUND);
 	}
 
 	private function canBuild(o:DrawableObject):Bool
