@@ -26,7 +26,8 @@ $RECYCLE.BIN/
 .LSOverride
 
 # Icon must end with two \r
-Icon
+Icon
+
 
 # Thumbnails
 ._*
@@ -43,4 +44,8 @@ Temporary Items
 .apdisk
 
 # Exports
-Export
+Export/flash/haxe/
+Export/flash/obj/
+Export/html5/
+Export/linux/
+Export/windows/
