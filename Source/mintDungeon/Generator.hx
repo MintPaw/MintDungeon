@@ -4,7 +4,6 @@ import flixel.FlxObject;
 import flixel.math.FlxPoint;
 import flixel.tile.FlxTilemap;
 import mintDungeon.DrawableObject;
-import mintDungeon.FlxTilemapNoGraphics;
 import mintDungeon.Hallway;
 import mintDungeon.Random;
 import openfl.display.Bitmap;
@@ -86,7 +85,7 @@ class Generator
 		var startRoom:Room = generateStartingRoom();
 		drawObject(startRoom);
 
-		var roomsToGenerate:Int = Random.minMaxInt(roomAmount.x, roomAmount.x) - 1;
+		var roomsToGenerate:Int = Random.minMaxInt(roomAmount.x, roomAmount.y) - 1;
 
 		var room:Room;
 		var hall:Hallway;
@@ -123,52 +122,98 @@ class Generator
 
 	private function generateDoors():Void
 	{
-		var absDoorPerc:Int = Random.minMaxInt(doorPercentage.x, doorPercentage.y);
-		var doorsToCreate:Int = Math.round(_hallways.length * absDoorPerc / 100);
-
-		for (i in 0...doorsToCreate)
+		while(true)
 		{
-			var currentCSV:String = getMapAsCSV();
-			while (true)
+			for (i in doors) setTile(i.x, i.y, GROUND);
+			for (i in keys) setTile(i.x, i.y, GROUND);
+			doors = [];
+			keys = [];
+
+			var absDoorPerc:Int = Random.minMaxInt(doorPercentage.x, doorPercentage.y);
+			var doorsToCreate:Int = Math.round(_hallways.length * absDoorPerc / 100);
+
+			for (i in 0...doorsToCreate)
 			{
-				var doorLoc:Point;
+				var currentCSV:String = getMapAsCSV();
 				while (true)
 				{
-					var badDoorPos:Bool = false;
-					doorLoc = _hallways[Random.minMaxInt(0, _hallways.length - 1)].endPoint.clone();
-					
-					for (i in doors) if (i.x == doorLoc.x && i.y == doorLoc.y) badDoorPos = true;
+					var doorLoc:Point;
+					while (true)
+					{
+						var badDoorPos:Bool = false;
+						doorLoc = _hallways[Random.minMaxInt(0, _hallways.length - 1)].endPoint.clone();
+						
+						for (i in doors) if (i.x == doorLoc.x && i.y == doorLoc.y) badDoorPos = true;
 
-					if (!badDoorPos) break;
-				}
+						if (!badDoorPos) break;
+					}
 
-				var keyLoc:Point = new Point();
+					var keyLoc:Point = new Point();
 
-				while(true)
-				{
-					keyLoc.setTo(Random.minMaxInt(1, mapSizeInTiles.x - 1), Random.minMaxInt(1, mapSizeInTiles.y - 1));
-					if (getTile(keyLoc.x, keyLoc.y) == GROUND && !keyLoc.equals(spawnPoint)) break;
-				}
+					while(true)
+					{
+						keyLoc.setTo(Random.minMaxInt(1, mapSizeInTiles.x - 1), Random.minMaxInt(1, mapSizeInTiles.y - 1));
+						if (getTile(keyLoc.x, keyLoc.y) == GROUND && !keyLoc.equals(spawnPoint)) break;
+					}
 
-				var map:FlxTilemap = new FlxTilemap();
-				map.loadMapFromCSV(currentCSV, "assets/empty.png", 1, 1);
-				map.setTileProperties(GROUND, FlxObject.NONE);
-
-				for (i in doors) map.setTile(Std.int(i.x), Std.int(i.y), DOOR);
-				map.setTile(Std.int(doorLoc.x), Std.int(doorLoc.y), DOOR);
-
-				var path:Array<FlxPoint> = map.findPath(new FlxPoint(Std.int(spawnPoint.x), Std.int(spawnPoint.y)), new FlxPoint(Std.int(keyLoc.x), Std.int(keyLoc.y)));
-
-				if (path != null)
-				{
-					setTile(keyLoc.x, keyLoc.y, KEY);
-					setTile(doorLoc.x, doorLoc.y, DOOR);
-					keys.push(keyLoc); 
-					doors.push(doorLoc); 
-					break;
+					if (isReachable(spawnPoint, keyLoc, currentCSV, doorLoc))
+					{
+						setTile(keyLoc.x, keyLoc.y, KEY);
+						setTile(doorLoc.x, doorLoc.y, DOOR);
+						keys.push(keyLoc); 
+						doors.push(doorLoc); 
+						break;
+					}
 				}
 			}
+
+			//for (i in 0...100) checkKeyDoor();
+			if (checkKeyDoor()) break;
 		}
+	}
+
+	private function checkKeyDoor():Bool
+	{
+		var keysSeen:Int = 0;
+		var visibleKeys:Int = 0;
+
+		for (i in doors)
+		{
+			var currentCSV:String = getMapAsCSV();
+			visibleKeys = 0;
+
+			for (j in keys)
+			{
+				if (isReachable(spawnPoint, j, currentCSV)) visibleKeys++;
+			}
+
+			if (visibleKeys == keys.length) return true;
+			if (visibleKeys <= keysSeen) return false;
+			keysSeen = visibleKeys;
+
+
+			var doorToRem:Point = doors[Random.minMaxInt(0, doors.length - 1)];
+			setTile(doorToRem.x, doorToRem.y, GROUND);
+		}
+
+		for (i in doors) setTile(i.x, i.y, DOOR);
+
+		return true;
+	}
+
+	private function isReachable(start:Point, end:Point, csv:String, doorToAdd:Point = null):Bool
+	{
+		var map:FlxTilemap = new FlxTilemap();
+		map.loadMapFromCSV(csv, "assets/empty.png", 1, 1);
+		map.setTileProperties(DOOR, FlxObject.ANY);
+		map.setTileProperties(GROUND, FlxObject.NONE);
+		map.setTileProperties(KEY, FlxObject.NONE);
+
+		if (doorToAdd != null) map.setTile(Std.int(doorToAdd.x), Std.int(doorToAdd.y), DOOR);
+
+		var path:Array<FlxPoint> = map.findPath(new FlxPoint(Std.int(start.x), Std.int(start.y)), new FlxPoint(Std.int(end.x), Std.int(end.y)));
+
+		return path != null;
 	}
 
 	private function generateHallway():Hallway
@@ -321,5 +366,19 @@ class Generator
 	private function tried():Void
 	{
 		if (_tries++ > 1000) _tryAgain = true;
+	}
+
+	public function shuffleArray(input:Array<Dynamic>):Void
+	{
+		var i:Int = input.length - 1;
+
+		while (i >= 0)
+		{
+			var randomIndex:Int = Math.floor(Math.random()*(i+1));
+			var itemAtIndex:Dynamic = input[randomIndex];
+			input[randomIndex] = input[i];
+			input[i] = itemAtIndex;
+			i--;
+		}
 	}
 }
