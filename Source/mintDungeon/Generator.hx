@@ -19,8 +19,6 @@ class Generator
 
 	public static var GROUND:Int = 1;
 	public static var WALL:Int = 2;
-	public static var DOOR:Int = 3;
-	public static var KEY:Int = 4;
 	public static var OFF_MAP:Int = 98;
 	public static var DEBUG:Int = 99;
 
@@ -122,94 +120,53 @@ class Generator
 
 	private function generateDoors():Void
 	{
-		while(true)
-		{
-			for (i in doors) setTile(i.x, i.y, GROUND);
-			for (i in keys) setTile(i.x, i.y, GROUND);
-			doors = [];
-			keys = [];
+		doors = [];
+		keys = [];
 
-			var absDoorPerc:Int = Random.minMaxInt(doorPercentage.x, doorPercentage.y);
-			var doorsToCreate:Int = Math.round(_hallways.length * absDoorPerc / 100);
+		var absDoorPerc:Int = Random.minMaxInt(doorPercentage.x, doorPercentage.y);
+		var doorsToCreate:Int = Math.round(_hallways.length * absDoorPerc / 100);
 
-			for (i in 0...doorsToCreate)
-			{
-				var currentCSV:String = getMapAsCSV();
-				while (true)
-				{
-					var doorLoc:Point;
-					while (true)
-					{
-						var badDoorPos:Bool = false;
-						doorLoc = _hallways[Random.minMaxInt(0, _hallways.length - 1)].endPoint.clone();
-						
-						for (i in doors) if (i.x == doorLoc.x && i.y == doorLoc.y) badDoorPos = true;
-
-						if (!badDoorPos) break;
-					}
-
-					var keyLoc:Point = new Point();
-
-					while(true)
-					{
-						keyLoc.setTo(Random.minMaxInt(1, mapSizeInTiles.x - 1), Random.minMaxInt(1, mapSizeInTiles.y - 1));
-						if (getTile(keyLoc.x, keyLoc.y) == GROUND && !keyLoc.equals(spawnPoint)) break;
-					}
-
-					if (isReachable(spawnPoint, keyLoc, currentCSV, doorLoc))
-					{
-						setTile(keyLoc.x, keyLoc.y, KEY);
-						setTile(doorLoc.x, doorLoc.y, DOOR);
-						keys.push(keyLoc); 
-						doors.push(doorLoc); 
-						break;
-					}
-				}
-			}
-
-			//for (i in 0...100) checkKeyDoor();
-			if (checkKeyDoor()) break;
-		}
-	}
-
-	private function checkKeyDoor():Bool
-	{
-		var keysSeen:Int = 0;
-		var visibleKeys:Int = 0;
-
-		for (i in doors)
+		for (i in 0...doorsToCreate)
 		{
 			var currentCSV:String = getMapAsCSV();
-			visibleKeys = 0;
-
-			for (j in keys)
+			while (true)
 			{
-				if (isReachable(spawnPoint, j, currentCSV)) visibleKeys++;
+				var doorLoc:Point;
+				while (true)
+				{
+					var badDoorPos:Bool = false;
+					doorLoc = _hallways[Random.minMaxInt(0, _hallways.length - 1)].endPoint.clone();
+					
+					for (i in doors) if (i.x == doorLoc.x && i.y == doorLoc.y) badDoorPos = true;
+
+					if (!badDoorPos) break;
+				}
+
+				var keyLoc:Point = new Point();
+
+				while(true)
+				{
+					keyLoc.setTo(Random.minMaxInt(1, mapSizeInTiles.x - 1), Random.minMaxInt(1, mapSizeInTiles.y - 1));
+					if (getTile(keyLoc.x, keyLoc.y) == GROUND && !keyLoc.equals(spawnPoint)) break;
+				}
+
+				if (isReachable(spawnPoint, keyLoc, currentCSV, doorLoc))
+					keys.push(keyLoc); 
+					doors.push(doorLoc); 
+					break;
+				}
 			}
-
-			if (visibleKeys == keys.length) return true;
-			if (visibleKeys <= keysSeen) return false;
-			keysSeen = visibleKeys;
-
-
-			var doorToRem:Point = doors[Random.minMaxInt(0, doors.length - 1)];
-			setTile(doorToRem.x, doorToRem.y, GROUND);
 		}
-
-		for (i in doors) setTile(i.x, i.y, DOOR);
-
-		return true;
 	}
 
-	private function isReachable(start:Point, end:Point, csv:String, doorToAdd:Point = null):Bool
+	private function isReachable(start:Point, end:Point, csv:String, toAdd:Point = null):Bool
 	{
 		var map:FlxTilemap = new FlxTilemap();
 		map.loadMapFromCSV(csv, "assets/empty.png", 1, 1);
-		map.setTileProperties(DOOR, FlxObject.ANY);
 		map.setTileProperties(GROUND, FlxObject.NONE);
-		map.setTileProperties(KEY, FlxObject.NONE);
 
-		if (doorToAdd != null) map.setTile(Std.int(doorToAdd.x), Std.int(doorToAdd.y), DOOR);
+		for (i in doors) map.setTile(Std.int(i.x), Std.int(i.y), WALL);
+		if (toAdd != null) map.setTile(Std.int(toAdd.x), Std.int(toAdd.y), WALL);
 
 		var path:Array<FlxPoint> = map.findPath(new FlxPoint(Std.int(start.x), Std.int(start.y)), new FlxPoint(Std.int(end.x), Std.int(end.y)));
 
@@ -319,10 +276,11 @@ class Generator
 			{
 				if (_mapArray[i][j] == WALL) b.setPixel(j, i, 0x000000);
 				if (_mapArray[i][j] == GROUND) b.setPixel(j, i, 0xFFFFFF);
-				if (_mapArray[i][j] == KEY) b.setPixel(j, i, 0x55FF55);
-				if (_mapArray[i][j] == DOOR) b.setPixel(j, i, 0x440000);
 				if (_mapArray[i][j] == DEBUG) b.setPixel(j, i, 0xFF0000);
 			}
+
+			for (i in doors) b.setPixel(Std.int(i.x), Std.int(i.y), 0x440000);
+			for (i in keys) b.setPixel(Std.int(i.x), Std.int(i.y), 0x55FF55);
 		}
 
 		b.setPixel(Std.int(spawnPoint.x), Std.int(spawnPoint.y), 0x0000FF);
