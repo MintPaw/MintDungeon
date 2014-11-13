@@ -22,6 +22,8 @@ class Generator
 	public static var OFF_MAP:Int = 98;
 	public static var DEBUG:Int = 99;
 
+	public static var colours:Array<Int> = [0xFF0000, 0x00FF00, 0x0000FF, 0xFFFF00, 0xFF00FF, 0x00FFFF];
+
 	public var mapSizeInTiles:Point = new Point();
 	public var roomSize:Point = new Point();
 	public var roomAmount:Point = new Point();
@@ -29,17 +31,17 @@ class Generator
 	public var doorPercentage:Point = new Point();
 
 	public var spawnPoint:Point = new Point();
-	public var keys:Array<Point>;
-	public var doors:Array<Point>;
+	public var keys:Array<Key>;
+	public var doors:Array<Door>;
 
 	private var _mapArray:Array<Array<Int>>;
-
 
 	private var _hallways:Array<Hallway>;
 	private var _rooms:Array<Room>;
 
 	private var _tryAgain:Bool;
 	private var _tries:Int;
+	private var _colourOn:Int;
 
 	public function new(seed:Int)
 	{
@@ -54,6 +56,7 @@ class Generator
 		{
 			_tryAgain = false;
 			_tries = 0;
+			_colourOn = 0;
 			_mapArray = [];
 			_rooms = [];
 			_hallways = [];
@@ -151,8 +154,12 @@ class Generator
 				}
 
 				if (isReachable(spawnPoint, keyLoc, currentCSV, doorLoc))
-					keys.push(keyLoc); 
-					doors.push(doorLoc); 
+				{
+					keys.push( {x: Std.int(keyLoc.x), y: Std.int(keyLoc.y), colour: colours[_colourOn]} );
+					doors.push( {x: Std.int(doorLoc.x), y: Std.int(doorLoc.y), colour: colours[_colourOn]} );
+					
+					_colourOn++;
+
 					break;
 				}
 			}
@@ -339,4 +346,18 @@ class Generator
 			i--;
 		}
 	}
+}
+
+typedef Door =
+{
+	x:Int,
+	y:Int,
+	colour:Int
+}
+
+typedef Key =
+{
+	x:Int,
+	y:Int,
+	colour:Int
 }
