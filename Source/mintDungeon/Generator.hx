@@ -52,6 +52,8 @@ class Generator
 	{
 		_tryAgain = true;
 
+		var loops:Int = 0;
+
 		while (_tryAgain)
 		{
 			_tryAgain = false;
@@ -66,6 +68,14 @@ class Generator
 			generateEmptyMap();
 			generateRooms();
 			generateDoors();
+
+			loops++;
+
+			if (loops >= 10)
+			{
+				trace("MAP CANNOT BE MADE");
+				return;
+			}
 		}
 	}
 
@@ -95,7 +105,7 @@ class Generator
 		{
 			while (true)
 			{
-				tried();
+				tried(10);
 
 				hall = generateHallway();
 
@@ -108,7 +118,7 @@ class Generator
 				if (hall.direction == DOWN) location = new Point(hall.endPoint.x - Random.minMaxInt(0, size.x - 1), hall.endPoint.y + 1);
 
 				room = generateRoom(Math.round(location.x), Math.round(location.y), Math.round(size.x), Math.round(size.y));
-
+				trace(_tries);
 				if (_tryAgain) return;
 				if (canBuild(hall) && canBuild(room)) break;
 			}
@@ -214,6 +224,8 @@ class Generator
 
 		hall.startPoint = hall.tiles.shift();
 		hall.endPoint = hall.tiles[hall.tiles.length - 1];
+		
+		if (length == 2) hall.endPoint = hall.startPoint;
 
 		return hall;
 	}
@@ -328,9 +340,9 @@ class Generator
 		return true;
 	}
 
-	private function tried():Void
+	private function tried(n:Int = 1):Void
 	{
-		if (_tries++ > 1000) _tryAgain = true;
+		if ((_tries += n) > 1000) _tryAgain = true;
 	}
 
 	public function shuffleArray(input:Array<Dynamic>):Void
