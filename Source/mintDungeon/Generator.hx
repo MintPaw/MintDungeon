@@ -65,6 +65,8 @@ class Generator
 			_hallways = [];
 			keys = [];
 			doors = [];
+			spawnPoint = new Point();
+			exitPoint = new Point();
 
 			generateEmptyMap();
 			generateRooms();
@@ -96,6 +98,7 @@ class Generator
 	private function generateRooms():Void
 	{
 		var startRoom:Room = generateStartingRoom();
+		_rooms.push(startRoom);
 		drawObject(startRoom);
 
 		var roomsToGenerate:Int = Random.minMaxInt(roomAmount.x, roomAmount.y) - 1;
