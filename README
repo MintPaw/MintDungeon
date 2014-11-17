@@ -2,3 +2,4 @@ This is my random dungeon generator
 
 TODO:
 Figure out A* and random seed solutions.
+Fix uniform room problem

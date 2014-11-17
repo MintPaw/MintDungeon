@@ -31,6 +31,7 @@ class Generator
 	public var doorPercentage:Point = new Point();
 
 	public var spawnPoint:Point = new Point();
+	public var exitPoint:Point = new Point();
 	public var keys:Array<Key>;
 	public var doors:Array<Door>;
 
@@ -68,6 +69,7 @@ class Generator
 			generateEmptyMap();
 			generateRooms();
 			generateDoors();
+			generateExit();
 
 			loops++;
 
@@ -105,7 +107,7 @@ class Generator
 		{
 			while (true)
 			{
-				tried(10);
+				tried();
 
 				hall = generateHallway();
 
@@ -118,7 +120,6 @@ class Generator
 				if (hall.direction == DOWN) location = new Point(hall.endPoint.x - Random.minMaxInt(0, size.x - 1), hall.endPoint.y + 1);
 
 				room = generateRoom(Math.round(location.x), Math.round(location.y), Math.round(size.x), Math.round(size.y));
-				trace(_tries);
 				if (_tryAgain) return;
 				if (canBuild(hall) && canBuild(room)) break;
 			}
@@ -144,6 +145,7 @@ class Generator
 			var currentCSV:String = getMapAsCSV();
 			while (true)
 			{
+				tried();
 				var doorLoc:Point;
 				while (true)
 				{
@@ -163,7 +165,7 @@ class Generator
 					if (getTile(keyLoc.x, keyLoc.y) == GROUND && !keyLoc.equals(spawnPoint)) break;
 				}
 
-				if (isReachable(spawnPoint, keyLoc, currentCSV, doorLoc))
+				if (isReachable(spawnPoint, keyLoc, currentCSV, doorLoc) || _tryAgain)
 				{
 					keys.push( {x: Std.int(keyLoc.x), y: Std.int(keyLoc.y), colour: colours[_colourOn]} );
 					doors.push( {x: Std.int(doorLoc.x), y: Std.int(doorLoc.y), colour: colours[_colourOn]} );
@@ -173,7 +175,24 @@ class Generator
 					break;
 				}
 			}
+			if (_tryAgain) break;
 		}
+	}
+
+	private function generateExit():Void
+	{
+		var choosenRoom:Room = _rooms[Random.minMaxInt(1, _rooms.length - 1)];
+		exitPoint = choosenRoom.tiles[Random.minMaxInt(0, choosenRoom.tiles.length - 1)].clone();
+
+		for (i in keys)
+		{
+			if (exitPoint.x == i.x && exitPoint.y == i.y)
+			{
+				generateExit();
+				return;
+			}
+		}
+
 	}
 
 	private function isReachable(start:Point, end:Point, csv:String, toAdd:Point = null):Bool
@@ -296,13 +315,14 @@ class Generator
 				if (_mapArray[i][j] == WALL) b.setPixel(j, i, 0x000000);
 				if (_mapArray[i][j] == GROUND) b.setPixel(j, i, 0xFFFFFF);
 				if (_mapArray[i][j] == DEBUG) b.setPixel(j, i, 0xFF0000);
-			}
-
-			for (i in doors) b.setPixel(Std.int(i.x), Std.int(i.y), 0x440000);
-			for (i in keys) b.setPixel(Std.int(i.x), Std.int(i.y), 0x55FF55);
+			}	
 		}
 
 		b.setPixel(Std.int(spawnPoint.x), Std.int(spawnPoint.y), 0x0000FF);
+		b.setPixel(Std.int(exitPoint.x), Std.int(exitPoint.y), 0x000044);
+
+		for (i in doors) b.setPixel(Std.int(i.x), Std.int(i.y), 0x440000);
+		for (i in keys) b.setPixel(Std.int(i.x), Std.int(i.y), 0x55FF55);
 
 		return new Bitmap(b);
 	}
